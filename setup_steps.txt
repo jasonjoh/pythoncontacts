@@ -1,0 +1,20 @@
+1. Install Python and Django per https://docs.djangoproject.com/en/1.7/intro/install/. After installing Python you probably want to add the Python directory and Python/Scripts subdirectories to your PATH.
+2. (OPTIONAL): Go through the Django tutorial (https://docs.djangoproject.com/en/1.7/intro/tutorial01/). It is excellent and really helps you quickly understand how Django works. I knew nothing about Python or Django going in, but after going through the tutorial, I was able to code the sample with no problems.
+3. Unzip the sample to any location.
+4. Open a command prompt to the directory where manage.py is located.
+5. Run setup_project.bat. This will create the project database and prompt you to create a superuser. You'll use this user to login to the sample once you have it running.
+6. Install the Requests: HTTP for Humans module. From the command line, run: pip install requests
+7. From the command line, run: python manage.py runserver
+8. You should see output like:
+    Performing system checks...
+
+    System check identified no issues (0 silenced).
+    December 18, 2014 - 12:36:32
+    Django version 1.7.1, using settings 'pythoncontacts.settings'
+    Starting development server at http://127.0.0.1:8000/
+    Quit the server with CTRL-BREAK.
+    
+9. Start an InPrivate browsing session (otherwise the OAuth login will try to use your corporate account) and go to http://127.0.0.1:8000/contacts.
+10. Login with your superuser account. You should then see a prompt to connect your Office 365 account. Click the link to do so. Login with an Office 365 account. If you don't have test tenant account, you can use one from mine: alexd@jasonjohtest.onmicrosoft.com, password: pass@word1
+11. You should see the base64-encoded access token displayed. You can decode it at http://jwt.calebb.net/ to verify.
+12. If you want to see what gets stored in the Django database for the user, go too http://127.0.0.1:8000/admin and click on the Office365 connections link. You can delete the user's record from the admin site too, in case you want to go through the consent process again.
