@@ -100,10 +100,10 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {
+        'contacts': {
             'handlers': ['file'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
     },
 }

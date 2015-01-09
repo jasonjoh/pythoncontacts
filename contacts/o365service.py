@@ -19,7 +19,7 @@ discovery_endpoint = 'https://api.office.com/discovery/v1.0/me/services'
 # Plugs in client ID and redirect URL to the authorize URL
 # App will call this to get a URL to redirect the user for sign in
 def get_authorization_url(redirect_uri):
-    logger = logging.getLogger('django')
+    logger = logging.getLogger('contacts')
     logger.debug('Entering get_authorization_url.')
     logger.debug('  redirect_uri: {0}'.format(redirect_uri))
     
@@ -34,7 +34,7 @@ def get_authorization_url(redirect_uri):
 # call the discovery service to find resource IDs and endpoints for all services
 # the app has permssions for
 def get_access_info_from_authcode(auth_code, redirect_uri):
-    logger = logging.getLogger('django')
+    logger = logging.getLogger('contacts')
     logger.debug('Entering get_access_info_from_authcode.')
     logger.debug('  auth_code: {0}'.format(auth_code))
     logger.debug('  redirect_uri: {0}'.format(redirect_uri))
@@ -82,7 +82,7 @@ def get_access_info_from_authcode(auth_code, redirect_uri):
 # the result. It builds a dictionary of resource IDs and API endpoints
 # from the results.
 def do_discovery(token):
-    logger = logging.getLogger('django')
+    logger = logging.getLogger('contacts')
     logger.debug('Entering do_discovery.')
     logger.debug('  token: {0}'.format(token))
     
@@ -106,7 +106,7 @@ def do_discovery(token):
 # Once the app has obtained access information (resource IDs and API endpoints)
 # it will call this function to get an access token for a specific resource. 
 def get_access_token_from_refresh_token(refresh_token, resource_id):
-    logger = logging.getLogger('django')
+    logger = logging.getLogger('contacts')
     logger.debug('Entering get_access_token_from_refresh_token.')
     logger.debug('  refresh_token: {0}'.format(refresh_token))
     logger.debug('  resource_id: {0}'.format(resource_id))
@@ -128,7 +128,7 @@ def get_access_token_from_refresh_token(refresh_token, resource_id):
 # it into header and payload, base64-decodes the payload, then
 # loads that into a JSON object.
 def parse_token(encoded_token):
-    logger = logging.getLogger('django')
+    logger = logging.getLogger('contacts')
     logger.debug('Entering parse_token.')
     logger.debug('  encoded_token: {0}'.format(encoded_token))
 
@@ -148,7 +148,7 @@ def parse_token(encoded_token):
         return 'Invalid token value: {0}'.format(encoded_token)
     
 def decode_token_part(base64data):
-    logger = logging.getLogger('django')
+    logger = logging.getLogger('contacts')
     logger.debug('Entering decode_token_part.')
     logger.debug('  base64data: {0}'.format(base64data))
 
@@ -166,9 +166,154 @@ def decode_token_part(base64data):
     logger.debug('Decoded string: {0}'.format(decoded))
     logger.debug('Leaving decode_token_part.')
     return decoded.decode('utf-8')
+
+# Retrieves a set of contacts from the user's default contacts folder
+#   parameters:
+#     contact_endpoint: string. The URL to the Contacts API endpoint (https://outlook.office365.com/api/v1.0)
+#     token: string. The access token
+#     parameters: string. An optional string containing query parameters to filter, sort, etc.
+#                 http://msdn.microsoft.com/office/office365/APi/complex-types-for-mail-contacts-calendar#UseODataqueryparameters
+def get_contacts(contact_endpoint, token, parameters):
+    logger = logging.getLogger('contacts')
+    logger.debug('Entering get_contacts.')
+    logger.debug('  contact_endpoint: {0}'.format(contact_endpoint))
+    logger.debug('  token: {0}'.format(token))
+    if (not parameters is None):
+        logger.debug('  parameters: {0}'.format(parameters))
         
+    headers = { 'Authorization' : 'Bearer {0}'.format(token),
+                'Accept' : 'application/json' }
+                
+    get_contacts = '{0}/Me/Contacts'.format(contact_endpoint)
+    
+    if (not parameters is None):
+        get_contacts = '{0}{1}'.format(get_contacts, parameters)
+                
+    r = requests.get(get_contacts, headers = headers)
+    logger.debug('Response status: {0}'.format(r.status_code))
+    if (r.status_code == requests.codes.unauthorized):
+        logger.debug('Leaving get_contacts.')
+        return None
+
+    logger.debug('Response: {0}'.format(r.json()))
+    logger.debug('Leaving get_contacts.')
+    return r.json()
+
+# Retrieves a single contact
+#   parameters:
+#     contact_endpoint: string. The URL to the Contacts API endpoint (https://outlook.office365.com/api/v1.0)
+#     token: string. The access token
+#     contact_id: string. The ID of the contact to retrieve.
+#     parameters: string. An optional string containing query parameters to limit the properties returned.
+#                 http://msdn.microsoft.com/office/office365/APi/complex-types-for-mail-contacts-calendar#UseODataqueryparameters    
+def get_contact_by_id(contact_endpoint, token, contact_id, parameters):
+    logger = logging.getLogger('contacts')
+    logger.debug('Entering get_contact_by_id.')
+    logger.debug('  contact_endpoint: {0}'.format(contact_endpoint))
+    logger.debug('  token: {0}'.format(token))
+    logger.debug('  contact_id: {0}'.format(contact_id))
+    if (not parameters is None):
+        logger.debug('  parameters: {0}'.format(parameters))
+    
+    headers = { 'Authorization' : 'Bearer {0}'.format(token),
+                'Accept' : 'application/json' }
+                
+    get_contact = '{0}/Me/Contacts/{1}'.format(contact_endpoint, contact_id)
+    
+    if (not parameters is None and
+        parameters != ''):
+        get_contact = '{0}{1}'.format(get_contact, parameters)
         
+    r = requests.get(get_contact, headers = headers)
+    
+    logger.debug('Response status: {0}'.format(r.status_code))
+    
+    if (r.status_code == requests.codes.ok):
+        logger.debug('Response: {0}'.format(r.json()))
+        logger.debug('Leaving get_contact_by_id(.')
+        return r.json()
+    else:
+        logger.debug('Leaving get_contact_by_id.')
+        return None
         
+# Deletes a single contact
+#   parameters:
+#     contact_endpoint: string. The URL to the Contacts API endpoint (https://outlook.office365.com/api/v1.0)
+#     token: string. The access token
+#     contact_id: string. The ID of the contact to delete.
+def delete_contact(contact_endpoint, token, contact_id):
+    logger = logging.getLogger('contacts')
+    logger.debug('Entering delete_contact.')
+    logger.debug('  contact_endpoint: {0}'.format(contact_endpoint))
+    logger.debug('  token: {0}'.format(token))
+    logger.debug('  contact_id: {0}'.format(contact_id))
+
+    headers = { 'Authorization' : 'Bearer {0}'.format(token),
+                'Accept' : 'application/json' }
+                
+    delete_contact = '{0}/Me/Contacts/{1}'.format(contact_endpoint, contact_id)
+    
+    r = requests.delete(delete_contact, headers = headers)
+    
+    logger.debug('Response status: {0}'.format(r.status_code))
+    logger.debug('Leaving delete_contact.')
+    
+    return r.status_code
+
+# Updates a single contact
+#   parameters:
+#     contact_endpoint: string. The URL to the Contacts API endpoint (https://outlook.office365.com/api/v1.0)
+#     token: string. The access token
+#     contact_id: string. The ID of the contact to update.    
+#     update_payload: string. A JSON representation of the properties to update.
+def update_contact(contact_endpoint, token, contact_id, update_payload):
+    logger = logging.getLogger('contacts')
+    logger.debug('Entering update_contact.')
+    logger.debug('  contact_endpoint: {0}'.format(contact_endpoint))
+    logger.debug('  token: {0}'.format(token))
+    logger.debug('  contact_id: {0}'.format(contact_id))
+    logger.debug('  update_payload: {0}'.format(update_payload))
+    
+    headers = { 'Authorization' : 'Bearer {0}'.format(token),
+                'Accept' : 'application/json',
+                'Content-Type': 'application/json' }
+                
+    update_contact = '{0}/Me/Contacts/{1}'.format(contact_endpoint, contact_id)
+    
+    r = requests.patch(update_contact, headers = headers, data = update_payload)
+    
+    logger.debug('Response status: {0}'.format(r.status_code))
+    logger.debug('Response: {0}'.format(r.json()))
+    logger.debug('Leaving update_contact.')
+    
+    return r.status_code
+
+# Creates a contact
+#   parameters:
+#     contact_endpoint: string. The URL to the Contacts API endpoint (https://outlook.office365.com/api/v1.0)
+#     token: string. The access token 
+#     contact_payload: string. A JSON representation of the new contact.    
+def create_contact(contact_endpoint, token, contact_payload):
+    logger = logging.getLogger('contacts')
+    logger.debug('Entering create_contact.')
+    logger.debug('  contact_endpoint: {0}'.format(contact_endpoint))
+    logger.debug('  token: {0}'.format(token))
+    logger.debug('  contact_payload: {0}'.format(contact_payload))
+    
+    headers = { 'Authorization' : 'Bearer {0}'.format(token),
+                'Accept' : 'application/json',
+                'Content-Type': 'application/json' }
+                
+    create_contact = '{0}/Me/Contacts'.format(contact_endpoint)
+    
+    r = requests.post(create_contact, headers = headers, data = contact_payload)
+    
+    logger.debug('Response status: {0}'.format(r.status_code))
+    logger.debug('Response: {0}'.format(r.json()))
+    logger.debug('Leaving create_contact.')
+    
+    return r.status_code
+    
 # MIT License: 
  
 # Permission is hereby granted, free of charge, to any person obtaining 

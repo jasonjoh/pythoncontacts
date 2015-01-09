@@ -3,12 +3,36 @@
 
 {% block content %}
 
-<div>Displaying access token for: <strong>{{user_email}}</strong></div>
-
 {% if error_message %}
     <div><strong>{{ error_message }}</strong></div>
-{% elif token %}
-    <div style="word-wrap: break-word">Access token: {{token}}</div>
+{% elif user_contacts %}
+    <div><span id="table-title">Your contacts</span><span id="user-email">(from {{user_email}})</span></div>
+    <a class="create" href="/contacts/new/">New Contact</a>
+    <table id="contacts" width="100%" border="1">
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Mobile Phone</th>
+            <th>Email 1</th>
+            <th>Email 2</th>
+            <th>Email 3</th>
+            <th>Actions</th>
+        </tr>
+        {% for contact in user_contacts %}
+            <tr class="{% cycle 'normal' 'alt' %}">
+                <td>{{ contact.given_name }}</td>
+                <td>{{ contact.last_name }}</td>
+                <td>{{ contact.mobile_phone }}</td>
+                <td>{{ contact.email1_address }}</td>
+                <td>{{ contact.email2_address }}</td>
+                <td>{{ contact.email3_address }}</td>
+                <td>
+                    <a class="action" href="/contacts/edit/{{ contact.id }}/">Edit</a>
+                    <a class="action" href="/contacts/delete/{{ contact.id }}/">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 {% else %}
     <div>Please <a href="{% url 'contacts:connect' %}">connect your Office 365 account</a> to view your contacts.</div>
 {% endif %}

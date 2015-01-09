@@ -6,9 +6,11 @@ from django.utils.decorators import method_decorator
 from django.views import generic
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
-from contacts.models import Office365Connection
+from contacts.models import Office365Connection, DisplayContact
 import contacts.o365service
 import traceback
+
+contact_properties = '?$select=GivenName,Surname,MobilePhone1,EmailAddresses'
 
 # Create your views here.
 # This is the index view for /contacts/
@@ -38,8 +40,30 @@ def index(request):
             connection_info.access_token = access_token['access_token']
             connection_info.save()
         
+        user_contacts = contacts.o365service.get_contacts(connection_info.outlook_api_endpoint,
+                                                          connection_info.access_token, contact_properties)
+                                                          
+        if (user_contacts is None):
+            # Use the refresh token to request a token for the Contacts API
+            access_token = contacts.o365service.get_access_token_from_refresh_token(connection_info.refresh_token, 
+                                                                                    connection_info.outlook_resource_id)
+            
+            # Save the access token
+            connection_info.access_token = access_token['access_token']
+            connection_info.save()
+            
+            user_contacts = contacts.o365service.get_contacts(connection_info.outlook_api_endpoint,
+                                                              connection_info.access_token, contact_properties)
+        contact_list = list()
+        
+        for user_contact in user_contacts['value']:
+            display_contact = DisplayContact()
+            display_contact.load_json(user_contact)
+            contact_list.append(display_contact)
+        
         # For now just return the token and the user's email, the page will display it.
-        context = { 'token': connection_info.access_token, 'user_email': connection_info.user_email }
+        context = { 'user_email': connection_info.user_email,
+                    'user_contacts': contact_list }
         return render(request, 'contacts/index.html', context)
         
 # The /contacts/connect/ action. This will redirect to the Azure OAuth
@@ -100,7 +124,176 @@ def authorize(request):
             return HttpResponseRedirect(reverse('contacts:index'))
     else:
         return HttpResponseRedirect(reverse('contacts:index'))
+
+# The new view, used to display a blank details form for a contact.
+@login_required
+def new(request):
+    return render(request, 'contacts/details.html', None)       
         
+# The create action, invoked via POST by the details form when creating
+# a new contact.
+@login_required
+def create(request):
+    try:
+        # Initialize a DisplayContact object from the posted form data
+        new_contact = DisplayContact()
+        new_contact.given_name = request.POST['first_name']
+        new_contact.last_name = request.POST['last_name']
+        new_contact.mobile_phone = request.POST['mobile_phone']
+        new_contact.email1_address = request.POST['email1_address']
+        new_contact.email1_name = request.POST['email1_name']
+        new_contact.email2_address = request.POST['email2_address']
+        new_contact.email2_name = request.POST['email2_name']
+        new_contact.email3_address = request.POST['email3_address']
+        new_contact.email3_name = request.POST['email3_name']
+        
+    except (KeyError):
+        # If the form data is missing or incomplete, display an error.
+        return render(request, 'contacts/error.html',
+                {
+                    'error_message': 'No contact data included in POST.',
+                }
+            )
+    else:
+        try:
+            # Get the user's connection info
+            connection_info = Office365Connection.objects.get(username = request.user)
+            
+        except ObjectDoesNotExist:
+            # If there is no connection object for the user, they haven't connected their
+            # Office 365 account yet. The page will ask them to connect.
+            return render(request, 'contacts/index.html', None)
+            
+        else:
+            result = contacts.o365service.create_contact(connection_info.outlook_api_endpoint,
+                                                         connection_info.access_token,
+                                                         new_contact.get_json(False))
+            # Per MSDN, success should be a 201 status                                             
+            if (result == 201):
+                return HttpResponseRedirect(reverse('contacts:index'))
+            else:
+                return render(request, 'contacts/error.html',
+                    {
+                        'error_message': 'Unable to create contact: {0} HTTP status returned.'.format(result),
+                    }
+                )
+
+# The edit view, used to display an existing contact in a details form.
+# Note this view always retrieves the contact from Office 365 to get the latest version.                
+@login_required
+def edit(request, contact_id):        
+    try:
+        # Get the user's connection info
+        connection_info = Office365Connection.objects.get(username = request.user)
+        
+    except ObjectDoesNotExist:
+        # If there is no connection object for the user, they haven't connected their
+        # Office 365 account yet. The page will ask them to connect.
+        return render(request, 'contacts/index.html', None)
+        
+    else:
+        if (connection_info.access_token is None or 
+                connection_info.access_token == ''):
+            return render(request, 'contacts/index.html', None)
+            
+    contact_json = contacts.o365service.get_contact_by_id(connection_info.outlook_api_endpoint,
+                                                          connection_info.access_token,
+                                                          contact_id, contact_properties)
+                                                          
+    if (not contact_json is None):
+        # Load the contact into a DisplayContact object
+        display_contact = DisplayContact()
+        display_contact.load_json(contact_json)
+        
+        # Render a details form
+        return render(request, 'contacts/details.html', { 'contact': display_contact })
+    else:
+        return render(request, 'contacts/error.html',
+            {
+                'error_message': 'Unable to get contact with ID: {0}'.format(contact_id),
+            }
+        )
+
+# The update action, invoked via POST from the details form when editing
+# an existing contact.
+@login_required   
+def update(request, contact_id):
+    try:
+        # Initialize a DisplayContact object from the posted form data
+        updated_contact = DisplayContact()
+        updated_contact.given_name = request.POST['first_name']
+        updated_contact.last_name = request.POST['last_name']
+        updated_contact.mobile_phone = request.POST['mobile_phone']
+        updated_contact.email1_address = request.POST['email1_address']
+        updated_contact.email1_name = request.POST['email1_name']
+        updated_contact.email2_address = request.POST['email2_address']
+        updated_contact.email2_name = request.POST['email2_name']
+        updated_contact.email3_address = request.POST['email3_address']
+        updated_contact.email3_name = request.POST['email3_name']
+        
+    except (KeyError):
+        # If the form data is missing or incomplete, display an error.
+        return render(request, 'contacts/error.html',
+                {
+                    'error_message': 'No contact data included in POST.',
+                }
+            )
+    else:
+        try:
+            # Get the user's connection info
+            connection_info = Office365Connection.objects.get(username = request.user)
+            
+        except ObjectDoesNotExist:
+            # If there is no connection object for the user, they haven't connected their
+            # Office 365 account yet. The page will ask them to connect.
+            return render(request, 'contacts/index.html', None)
+            
+        else:
+            result = contacts.o365service.update_contact(connection_info.outlook_api_endpoint,
+                                                         connection_info.access_token,
+                                                         contact_id,
+                                                         updated_contact.get_json(True))
+            
+            # Per MSDN, success should be a 200 status
+            if (result == 200):
+                return HttpResponseRedirect(reverse('contacts:index'))
+            else:
+                return render(request, 'contacts/error.html',
+                    {
+                        'error_message': 'Unable to update contact: {0} HTTP status returned.'.format(result),
+                    }
+                )
+        
+# The delete action, invoked to delete a contact.        
+@login_required
+def delete(request, contact_id):
+    try:
+        # Get the user's connection info
+        connection_info = Office365Connection.objects.get(username = request.user)
+        
+    except ObjectDoesNotExist:
+        # If there is no connection object for the user, they haven't connected their
+        # Office 365 account yet. The page will ask them to connect.
+        return render(request, 'contacts/index.html', None)
+        
+    else:
+        if (connection_info.access_token is None or 
+                connection_info.access_token == ''):
+            return render(request, 'contacts/index.html', None)
+            
+        result = contacts.o365service.delete_contact(connection_info.outlook_api_endpoint,
+                                                     connection_info.access_token,
+                                                     contact_id)
+        
+        # Per MSDN, success should be a 204 status
+        if (result == 204):
+            return HttpResponseRedirect(reverse('contacts:index'))
+        else:
+            return render(request, 'contacts/error.html',
+                {
+                    'error_message': 'Unable to delete contact: {0} HTTP status returned.'.format(result),
+                }
+            )
 # MIT License: 
  
 # Permission is hereby granted, free of charge, to any person obtaining 

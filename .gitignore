@@ -51,3 +51,5 @@ debug.log
 !/contacts/migrations/__init__.py
 /pythoncontacts/__pycache__/*
 
+# Misc
+*.zip

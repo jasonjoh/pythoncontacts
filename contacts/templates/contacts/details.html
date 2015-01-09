@@ -1,0 +1,54 @@
+<!-- Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file. -->
+{% extends "base.html" %}
+
+{% block content %}
+{% if contact %}
+<form action="{% url 'contacts:update' contact.id %}" method="post">
+{% else %}
+<form action="{% url 'contacts:create' %}" method="post">
+{% endif %}
+    {% csrf_token %}
+    <label for="first_name">First Name</label><br>
+    <input class="contact-field" type="text" name="first_name" id="first_name" value="{{ contact.given_name }}" required /><br>
+    <label for="last_name">Last Name</label><br>
+    <input class="contact-field" type="text" name="last_name" id="last_name" value="{{ contact.last_name }}" /><br>
+    <label for="mobile_phone">Mobile Phone</label><br>
+    <input class="contact-field" type="text" name="mobile_phone" id="mobile_phone" value="{{ contact.mobile_phone }}" /><br>
+    <label for="email_address1">Email Address 1</label><br>
+    <input class="contact-field" type="text" name="email1_address" id="email_address" value="{{ contact.email1_address }}" /><br>
+    <label for="email_name1">Display As</label><br>
+    <input class="contact-field" type="text" name="email1_name" id="email_name" value="{{ contact.email1_name }}" /><br>
+    <label for="email_address2">Email Address 2</label><br>
+    <input class="contact-field" type="text" name="email2_address" id="email_address2" value="{{ contact.email2_address }}" /><br>
+    <label for="email_name2">Display As</label><br>
+    <input class="contact-field" type="text" name="email2_name" id="email_name2" value="{{ contact.email2_name }}" /><br>
+    <label for="email_address3">Email Address 3</label><br>
+    <input class="contact-field" type="text" name="email3_address" id="email_address3" value="{{ contact.email3_address }}" /><br>
+    <label for="email_name3">Display As</label><br>
+    <input class="contact-field" type="text" name="email3_name" id="email_name3" value="{{ contact.email3_name }}" /><br>
+    <input type="submit" value="Save Changes" />
+</form>
+{% endblock %}
+
+<!--
+ MIT License: 
+ 
+ Permission is hereby granted, free of charge, to any person obtaining 
+ a copy of this software and associated documentation files (the 
+ ""Software""), to deal in the Software without restriction, including 
+ without limitation the rights to use, copy, modify, merge, publish, 
+ distribute, sublicense, and/or sell copies of the Software, and to 
+ permit persons to whom the Software is furnished to do so, subject to 
+ the following conditions: 
+ 
+ The above copyright notice and this permission notice shall be 
+ included in all copies or substantial portions of the Software. 
+ 
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, 
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
+ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->

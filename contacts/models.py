@@ -2,6 +2,7 @@
 from django.db import models
 
 # Create your models here.
+# Represents a connection between a local account and an Office 365 account
 class Office365Connection(models.Model):
     # The local username (the one used to sign into the website)
     username = models.CharField(max_length = 30)
@@ -18,6 +19,110 @@ class Office365Connection(models.Model):
     
     def __str__(self):
         return self.username
+
+# Represents a contact item        
+class DisplayContact:
+    given_name = ''
+    last_name = ''
+    mobile_phone = ''
+    email1_address = ''
+    email1_name = ''
+    email2_address = ''
+    email2_name = ''
+    email3_address = ''
+    email3_name = ''
+    id = ''
+    
+    # Initializes fields based on the JSON representation of a contact
+    # returned by Office 365
+    #   parameters:
+    #     json: dict. The JSON dictionary object returned from Office 365.
+    def load_json(self, json):
+        self.given_name = json['GivenName']
+        self.last_name = json['Surname']
+        
+        if (not json['MobilePhone1'] is None):
+            self.mobile_phone = json['MobilePhone1']
+        
+        email_address_list = json['EmailAddresses']
+        if (not email_address_list[0] is None):
+            self.email1_address = email_address_list[0]['Address']
+            self.email1_name = email_address_list[0]['Name']
+        if (not email_address_list[1] is None):
+            self.email2_address = email_address_list[1]['Address']
+            self.email2_name = email_address_list[1]['Name']
+        if (not email_address_list[2] is None):
+            self.email3_address = email_address_list[2]['Address']
+            self.email3_name = email_address_list[2]['Name']
+        
+        self.id = json['Id']
+    
+    # Generates a JSON payload for updating or creating a 
+    # contact.
+    #   parameters:
+    #     return_nulls: Boolean. Controls how the EmailAddresses
+    #                   array is generated. If True, empty entries
+    #                   will be represented by "null". This style works
+    #                   for update, and allows you to remove entries. 
+    #                   If False, empty entries are skipped. This is needed
+    #                   in the create scenario, because passing null for any entry
+    #                   results in a 500 error.
+    def get_json(self, return_nulls):
+        json_string = '{'
+        json_string += '"GivenName": "{0}"'.format(self.given_name)
+        json_string += ',"Surname": "{0}"'.format(self.last_name)
+        json_string += ',"MobilePhone1": "{0}"'.format(self.mobile_phone)
+        json_string += ',"EmailAddresses": ['
+        
+        email_entry_added = False
+        if (self.email1_address == '' and self.email1_name == ''):
+            if (return_nulls == True):
+                email_entry_added = True
+                json_string += 'null'
+        else:
+            email_entry_added = True
+            json_string += '{'
+            json_string += '"@odata.type": "#Microsoft.OutlookServices.EmailAddress"'
+            json_string += ',"Address": "{0}"'.format(self.email1_address)
+            json_string += ',"Name": "{0}"'.format(self.email1_name)
+            json_string += '}'
+        
+        if (self.email2_address == '' and self.email2_name == ''):
+            if (return_nulls == True):
+                if (email_entry_added == True):
+                    json_string += ','
+                email_entry_added = True;
+                json_string += 'null'
+        else:
+            if (email_entry_added == True):
+                json_string += ','
+            email_entry_added = True;
+            json_string += '{'
+            json_string += '"@odata.type": "#Microsoft.OutlookServices.EmailAddress"'
+            json_string += ',"Address": "{0}"'.format(self.email2_address)
+            json_string += ',"Name": "{0}"'.format(self.email2_name)
+            json_string += '}'
+            
+        if (self.email3_address == '' and self.email3_name == ''):
+            if (return_nulls == True):
+                if (email_entry_added == True):
+                    json_string += ','
+                email_entry_added = True;
+                json_string += 'null'
+        else:
+            if (email_entry_added == True):
+                json_string += ','
+            email_entry_added = True;
+            json_string += '{'
+            json_string += '"@odata.type": "#Microsoft.OutlookServices.EmailAddress"'
+            json_string += ',"Address": "{0}"'.format(self.email3_address)
+            json_string += ',"Name": "{0}"'.format(self.email3_name)
+            json_string += '}'
+        
+        json_string += ']'
+        json_string += '}'
+        
+        return json_string
     
 # MIT License: 
  

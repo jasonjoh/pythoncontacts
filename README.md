@@ -35,11 +35,14 @@ It's assumed that you have Python and Django installed before starting. Windows 
 9. Use your browser to go to http://127.0.0.1:8000/contacts.
 10. Login with your superuser account.
 11. You should now be prompted to connect your Office 365 account. Click the link to do so and login with an Office 365 account.
-12. You should see the base64-encoded access token displayed. You can decode it at http://jwt.calebb.net/ to verify.
+12. You should see a table listing the existing contacts in your Office 365 account. You can click the "New Contact" button to create a new contact, or use the "Edit" or "Delete" buttons on existing contacts.
 13. If you want to see what gets stored in the Django database for the user, go too http://127.0.0.1:8000/admin and click on the Office365 connections link. You can delete the user's record from the admin site too, in case you want to go through the consent process again.
 
 ## Release history ##
 
+To get a specific release version, go to https://github.com/jasonjoh/pythoncontacts/releases
+
+- **1.1: Contact functions.** App now displays a list of contacts and allows the user to create new contacts and edit or delete existing ones.
 - **1.0: Initial release.** App allows user to connect an Office 365 account with a local app account. App does OAuth2 code grant flow and displays the user's access token.
 
 ## Copyright ##

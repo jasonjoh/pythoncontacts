@@ -1,14 +1,19 @@
 <!-- Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file. -->
 {% load staticfiles %}
 <html>
+  <head>
+    <link href="{% static "css/styles.css" %}" rel="stylesheet">
+  </head>
   <body>
-    <div>
-      Current User: <strong>{{ user }}</strong>
-      {% if user.is_anonymous %}
-      <a href="{% url 'django.contrib.auth.views.login' %}">login</a>
-      {% else %}
-      <a href="{% url 'django.contrib.auth.views.logout' %}">logout</a>
-      {% endif %}
+    <div id="info-bar">
+      <span id="title"><a class="title" href="{% url 'contacts:index' %}"><strong>Python Contacts App</strong></a></span>
+      <span id="user-info">Current User: <strong>{{ user }}</strong>
+          {% if user.is_anonymous %}
+          <a class="user" href="{% url 'django.contrib.auth.views.login' %}">login</a>
+          {% else %}
+          <a class="user" href="{% url 'django.contrib.auth.views.logout' %}">logout</a>
+          {% endif %}
+      </span>
     </div>
     {% block content %}
     {% endblock %}

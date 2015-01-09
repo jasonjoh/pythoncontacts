@@ -1,0 +1,97 @@
+body {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+#info-bar {
+    width: 100%;
+    background-color: #0072C6;
+    color: #ffffff;
+    font-size: 1.5em;
+    text-align: left;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#user-info {
+    width: auto;
+    float: right;
+}
+
+#table-title {
+    font-style: bold;
+    font-size: 2em;
+}
+
+#user-email {
+    margin-left: 5px;
+    font-style: italic;
+    width: auto;
+}
+
+#contacts {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#contacts td, #contacts th {
+    font-size: 1em;
+    border: 1px solid #0072C6;
+    padding: 3px 7px 2px 7px;
+}
+
+#contacts th {
+    font-size: 1.1em;
+    text-align: left;
+    padding-top: 5px;
+    padding-bottom: 4px;
+    background-color: #0072C6;
+    color: #ffffff;
+}
+
+#contacts tr.alt td {
+    color: #000000;
+    background-color: #CDE6F7;
+}
+
+a.user:link {
+    color: #ffffff;
+}
+
+a.title:link {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+a.create:link, a.create:visited {
+    display: block;
+    width: 200px;
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: #0072C6;
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+    text-transform: uppercase;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+a.action:link, a.action:visited {
+    display: block;
+    width: 85px;
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: #0072C6;
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+    text-transform: uppercase;
+    margin-left: 5px;
+    float: left;
+}
+
+input.contact-field {
+    width: 50%;
+    margin-bottom: 5px;
+}

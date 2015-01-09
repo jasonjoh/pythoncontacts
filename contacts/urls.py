@@ -4,9 +4,22 @@ from django.conf.urls import patterns, url
 from contacts import views
 
 urlpatterns = patterns('',
+    # The home view ('/contacts/')
     url(r'^$', views.index, name='index'),
+    # Used to start OAuth2 flow ('/contacts/connect/')
     url(r'^connect/$', views.connect, name='connect'),
+    # Used as redirect target in OAuth2 flow ('/contacts/authorize/')
     url(r'^authorize/$', views.authorize, name='authorize'),
+    # Displays a form to create a new contact ('/contacts/new/')
+    url(r'^new/$', views.new, name='new'),
+    # Invoked to create a new contact in Office 365 ('/contacts/create/')
+    url(r'^create/$', views.create, name='create'),
+    # Displays an existing contact in an editable form ('/contacts/edit/<contact_id>/')
+    url(r'^edit/(?P<contact_id>.+)/$', views.edit, name='edit'),
+    # Invoked to update an existing contact ('/contacts/update/<contact_id>/')
+    url(r'^update/(?P<contact_id>.+)/$', views.update, name='update'),
+    # Invoked to delete an existing contact ('/contacts/delete/<contact_id>/')
+    url(r'^delete/(?P<contact_id>.+)/$', views.delete, name='delete'),
 )
 
 # MIT License: 
