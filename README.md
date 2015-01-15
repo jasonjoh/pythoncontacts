@@ -42,6 +42,7 @@ It's assumed that you have Python and Django installed before starting. Windows 
 
 To get a specific release version, go to https://github.com/jasonjoh/pythoncontacts/releases
 
+- **1.2: Mail and Calendar functions.** The o365service module now has some Mail API and Calendar API functionality. No UI for these functions, but they can be invoked via the new test classes added to test.py. Also added a flag to disable SSL cert validation so that you can capture requests and responses with Fiddler.
 - **1.1: Contact functions.** App now displays a list of contacts and allows the user to create new contacts and edit or delete existing ones.
 - **1.0: Initial release.** App allows user to connect an Office 365 account with a local app account. App does OAuth2 code grant flow and displays the user's access token.
 
