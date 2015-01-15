@@ -10,7 +10,7 @@ from contacts.models import Office365Connection, DisplayContact
 import contacts.o365service
 import traceback
 
-contact_properties = '?$select=GivenName,Surname,MobilePhone1,EmailAddresses'
+contact_properties = '?$select=GivenName,Surname,MobilePhone1,EmailAddresses&$top=50'
 
 # Create your views here.
 # This is the index view for /contacts/
