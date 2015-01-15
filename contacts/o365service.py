@@ -23,7 +23,7 @@ logger = logging.getLogger('contacts')
 
 # Set to False to bypass SSL verification
 # Useful for capturing API calls in Fiddler
-verifySSL = False
+verifySSL = True
 
 # Plugs in client ID and redirect URL to the authorize URL
 # App will call this to get a URL to redirect the user for sign in
