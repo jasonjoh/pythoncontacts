@@ -9,10 +9,14 @@ import datetime
 from contacts.clientreg import client_registration
 
 # Constant strings for OAuth2 flow
+# The OAuth authority
+authority = 'https://login.microsoftonline.com'
 # The authorize URL that initiates the OAuth2 authorization code grant flow for user consent
-authorize_url = 'https://login.windows.net/common/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=code'
+authorize_url = '{0}{1}'.format(authority, 
+  '/common/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=code')
 # The token endpoint, where the app sends the auth code to get an access token
-access_token_url = 'https://login.windows.net/common/oauth2/token'
+access_token_url = '{0}{1}'.format(authority,
+  '/common/oauth2/token')
 
 # The discovery service resource and endpoint are constant
 discovery_resource = 'https://api.office.com/discovery/'
